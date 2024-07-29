@@ -1,0 +1,126 @@
+{% extends "layout.html" %} {% block content %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tipo de Secuencias</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #28a745;
+            color: white;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .output {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Visualizador de Secuencias</h1>
+        <div class="form-group">
+            <label for="sequence">Secuencia (máximo 30 caracteres):</label>
+            <input type="text" id="sequence" maxlength="30">
+        </div>
+        <button onclick="analyzeSequence()">Analizar Secuencia</button>
+        <div class="output" id="output"></div>
+    </div>
+
+    <script>
+        function analyzeSequence() {
+            const sequence = document.getElementById('sequence').value.trim().toUpperCase();
+            const outputDiv = document.getElementById('output');
+
+            if (!sequence) {
+                outputDiv.innerHTML = "Por favor, ingresa una secuencia.";
+                return;
+            }
+
+            const dnaRegex = /^[ATCG]+$/;
+            const rnaRegex = /^[AUCG]+$/;
+            const proteinRegex = /^[ACDEFGHIKLMNPQRSTVWY]+$/;
+
+            let type = '';
+            let transcription = '';
+            if (dnaRegex.test(sequence)) {
+                type = 'ADN';
+                transcription = transcribeDNAtoRNA(sequence);
+            } else if (rnaRegex.test(sequence)) {
+                type = 'ARN';
+                transcription = 'N/A';
+            } else if (proteinRegex.test(sequence)) {
+                type = 'Proteína';
+                transcription = 'N/A';
+            } else {
+                type = 'Secuencia inválida';
+                transcription = 'N/A';
+            }
+
+            outputDiv.innerHTML = `
+                <p><strong>Tipo:</strong> ${type}</p>
+                <p><strong>Cantidad de elementos:</strong> ${sequence.length}</p>
+                <p><strong>Transcripción (ADN -> ARN):</strong> ${transcription}</p>
+            `;
+        }
+
+        function transcribeDNAtoRNA(dna) {
+            let rna = '';
+            for (let i = 0; i < dna.length; i++) {
+                switch (dna[i]) {
+                    case 'A':
+                        rna += 'U';
+                        break;
+                    case 'T':
+                        rna += 'A';
+                        break;
+                    case 'C':
+                        rna += 'G';
+                        break;
+                    case 'G':
+                        rna += 'C';
+                        break;
+                }
+            }
+            return rna;
+        }
+    </script>
+</body>
+</html>
+
+{% endblock %}

@@ -1,0 +1,113 @@
+{% extends "layout.html" %}
+
+{% block title %}Alineamiento de 2 Secuencias{% endblock %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alineamiento de Secuencias</title>
+    <style>
+        .match { color: green; font-size: 25px; }
+        .mismatch { color: blue; font-size: 25px; }
+        .gap { color: red; font-size: 25px; }
+        .alignment-container {
+            display: flex;
+            align-items: flex-start;
+        }
+        .alignments {
+            margin-right: 20px;
+        }
+        .matrix {
+            max-width: 400px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Alineamiento de Secuencias</h1>
+    <form id="alignmentForm">
+        <label for="sequence1">Secuencia 1:</label>
+        <input type="text" id="sequence1" name="sequence1" required>
+        <label for="sequence2">Secuencia 2:</label>
+        <input type="text" id="sequence2" name="sequence2" required>
+        <label for="gap">Penalización de Gap:</label>
+        <input type="number" id="gap" name="gap" value="-2">
+        <label for="algorithm">Algoritmo:</label>
+        <select id="algorithm" name="algorithm">
+            <option value="needleman_wunsch">Needleman-Wunsch</option>
+            <option value="smith_waterman">Smith-Waterman</option>
+        </select>
+        <button type="submit">Alinear</button>
+    </form>
+
+    <br><br>
+    <h3>Resultados del Alineamiento</h3>
+    <div class="alignment-container">
+        <div id="results" class="alignments"></div>
+        <div id="matrix" class="matrix"></div>
+    </div>
+
+    <script>
+        document.getElementById('alignmentForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const sequence1 = document.getElementById('sequence1').value;
+            const sequence2 = document.getElementById('sequence2').value;
+            const gap = parseInt(document.getElementById('gap').value);
+            const algorithm = document.getElementById('algorithm').value;
+
+            fetch('/analyze_alignment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ sequence1, sequence2, gap, algorithm })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const resultsDiv = document.getElementById('results');
+                const matrixDiv = document.getElementById('matrix');
+                resultsDiv.innerHTML = '';
+                matrixDiv.innerHTML = '';
+
+                if (data.error) {
+                    resultsDiv.innerHTML = `<p style="color: red;">${data.error}</p>`;
+                } else {
+                    data.alignments.forEach((alignment, index) => {
+                        const alignmentDiv = document.createElement('div');
+                        alignmentDiv.innerHTML = `<h4>Alineamiento ${index + 1}</h4>`;
+                        const seq1Span = document.createElement('div');
+                        const seq2Span = document.createElement('div');
+                        seq1Span.style.whiteSpace = 'pre';
+                        seq2Span.style.whiteSpace = 'pre';
+
+                        alignment.forEach(pair => {
+                            const span1 = document.createElement('span');
+                            span1.textContent = pair.base1;
+                            span1.classList.add(pair.color);
+
+                            const span2 = document.createElement('span');
+                            span2.textContent = pair.base2;
+                            span2.classList.add(pair.color);
+
+                            seq1Span.appendChild(span1);
+                            seq2Span.appendChild(span2);
+                        });
+
+                        alignmentDiv.appendChild(seq1Span);
+                        alignmentDiv.appendChild(seq2Span);
+                        resultsDiv.appendChild(alignmentDiv);
+                    });
+
+                    const img = document.createElement('img');
+                    img.src = 'data:image/png;base64,' + data.matrix_image;
+                    matrixDiv.appendChild(img);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
+{% endblock %}

@@ -1,0 +1,111 @@
+{% extends "layout.html" %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proyecto de Bioinformática</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to right, #1c92d2, #f2fcfe);
+            color: #333;
+        }
+        .container {
+            text-align: center;
+            padding: 50px 20px;
+        }
+        h1 {
+            font-size: 3em;
+            color: #fff;
+        }
+        .description {
+            font-size: 1.2em;
+            color: #fff;
+            margin-bottom: 40px;
+        }
+        .features {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+        .feature {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            padding: 20px;
+            width: 200px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease-in-out;
+            text-decoration: none;
+            color: inherit;
+        }
+        .feature:hover {
+            transform: scale(1.05);
+        }
+        .feature-icon {
+            font-size: 2em;
+            color: #1c92d2;
+            margin-bottom: 10px;
+        }
+        .feature-title {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .feature-description {
+            font-size: 1em;
+            color: #666;
+        }
+        .footer {
+            margin-top: 50px;
+            font-size: 0.9em;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Proyecto de Bioinformática</h1>
+        <p class="description">Bienvenido a nuestra herramienta de visualización y análisis de secuencias biológicas. Explora las funcionalidades disponibles a continuación.</p>
+        <div class="features">
+            <a href="{{ url_for('la_secuencia') }}" class="feature">
+                <i class="fa fa-dna feature-icon"></i>
+                <div class="feature-title">Secuencia</div>
+                <div class="feature-description">Visualiza y analiza secuencias biológicas.</div>
+            </a>
+            <a href="{{ url_for('el_alineamiento_2_sec') }}" class="feature">
+                <i class="fa fa-align-center feature-icon"></i>
+                <div class="feature-title">Alineamiento de Secuencias</div>
+                <div class="feature-description">Realiza alineamientos globales y locales.</div>
+            </a>
+            <a href="{{ url_for('el_alineamiento_multiple') }}" class="feature">
+                <i class="fa fa-project-diagram feature-icon"></i>
+                <div class="feature-title">Alineamiento Múltiple</div>
+                <div class="feature-description">Alinea múltiples secuencias simultáneamente.</div>
+            </a>
+            <a href="{{ url_for('el_cluster') }}" class="feature">
+                <i class="fa fa-clone feature-icon"></i>
+                <div class="feature-title">Clustering</div>
+                <div class="feature-description">Agrupa secuencias similares.</div>
+            </a>
+            <a href="{{ url_for('la_filogenia') }}" class="feature">
+                <i class="fa fa-tree feature-icon"></i>
+                <div class="feature-title">Filogenia</div>
+                <div class="feature-description">Construye árboles filogenéticos.</div>
+            </a>
+            <a href="{{ url_for('la_estructura_secundaria') }}" class="feature">
+                <i class="fa fa-atom feature-icon"></i>
+                <div class="feature-title">Estructura Secundaria</div>
+                <div class="feature-description">Visualiza estructuras secundarias de proteínas.</div>
+            </a>
+        </div>
+        <div class="footer">
+            <p>&copy; 2024 Proyecto de Bioinformática. Todos los derechos reservados.</p>
+        </div>
+    </div>
+</body>
+</html>
+{% endblock %}
