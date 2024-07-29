@@ -1,5 +1,91 @@
-{% extends "layout.html" %} {% block content %}
+{% extends "layout.html" %}
 
+{% block title %}Clustering{% endblock %}
 
+{% block content %}
+<h1>Clustering</h1>
+<form id="phylogenyForm">
+    <label for="numClusters">Número de Clústeres:</label>
+    <input type="number" id="numClusters" name="numClusters" min="2" required>
+    <button type="button" onclick="generateMatrix()">Generar Matriz</button>
 
+    <div id="matrixInput" style="margin-top: 20px;"></div>
+
+    <label for="method">Método de Cálculo:</label>
+    <select id="method" name="method">
+        <option value="single">Enlace Simple (Min)</option>
+        <option value="complete">Enlace Completo (Max)</option>
+        <option value="average">Enlace Promedio</option>
+    </select>
+
+    <button type="submit">Calcular Filogenia</button>
+</form>
+
+<div id="result" style="margin-top: 20px;"></div>
+
+<script>
+function generateMatrix() {
+    const numClusters = document.getElementById('numClusters').value;
+    const matrixDiv = document.getElementById('matrixInput');
+    matrixDiv.innerHTML = '';
+
+    if (numClusters < 2) {
+        alert('El número de clústeres debe ser al menos 2.');
+        return;
+    }
+
+    let table = document.createElement('table');
+    for (let i = 0; i < numClusters; i++) {
+        let row = document.createElement('tr');
+        for (let j = 0; j < numClusters; j++) {
+            let cell = document.createElement('td');
+            if (i < j) {
+                let input = document.createElement('input');
+                input.type = 'number';
+                input.step = '0.01';
+                input.id = `cell_${i}_${j}`;
+                input.name = `cell_${i}_${j}`;
+                cell.appendChild(input);
+            }
+            row.appendChild(cell);
+        }
+        table.appendChild(row);
+    }
+    matrixDiv.appendChild(table);
+}
+
+document.getElementById('phylogenyForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const numClusters = parseInt(document.getElementById('numClusters').value);
+    const method = document.getElementById('method').value;
+    let matrix = Array(numClusters).fill(null).map(() => Array(numClusters).fill(0));
+
+    for (let i = 0; i < numClusters; i++) {
+        for (let j = 0; j < numClusters; j++) {
+            if (i < j) {
+                let value = parseFloat(document.getElementById(`cell_${i}_${j}`).value);
+                matrix[i][j] = isNaN(value) ? 0 : value;
+                matrix[j][i] = matrix[i][j]; // Matriz simétrica
+            }
+        }
+    }
+
+    fetch('/analyze_clustering', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ matrix, method })
+    })
+    .then(response => response.json())
+    .then(data => {
+        const resultDiv = document.getElementById('result');
+        if (data.error) {
+            resultDiv.innerHTML = `<p style="color: red;">${data.error}</p>`;
+        } else {
+            resultDiv.innerHTML = `<h3>Resultado:</h3><img src="data:image/png;base64,${data.dendrogram_image}" />`;
+        }
+    });
+});
+</script>
 {% endblock %}
