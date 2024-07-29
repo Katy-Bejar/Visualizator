@@ -6,6 +6,13 @@ import base64
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+from cluster_algorithms.cluster import single_linkage_clustering
+from cluster_algorithms.cluster import create_linkage_matrix
+from cluster_algorithms.cluster import plot_dendrogram
+from estructura.estructura_secundaria import predict_secondary_structure, traceback, plot_structure
+import networkx as nx
+from io import BytesIO
+from scipy.cluster.hierarchy import dendrogram, linkage
 
 app = Flask(__name__)
 
@@ -28,14 +35,76 @@ def el_alineamiento_multiple():
 @app.route('/El_Cluster')
 def el_cluster():
     return render_template('Clusterizacion.html')
+@app.route('/analyze_clustering', methods=['POST'])
+def analyze_clustering():
+    data = request.get_json()
+    matrix = np.array(data.get('matrix'))
+    method = data.get('method')
 
+    if matrix is None or method not in ['single', 'complete', 'average']:
+        return jsonify({'error': 'Datos inválidos.'})
+
+    # Realizar el clustering con el método especificado
+    Z = linkage(matrix, method=method)
+
+    # Crear el dendrograma
+    plt.figure(figsize=(10, 7))
+    dendro = dendrogram(Z, labels=[chr(65 + i) for i in range(len(matrix))], leaf_rotation=90, leaf_font_size=12)
+
+    # Añadir etiquetas de distancia en el dendrograma
+    for i, d, c in zip(dendro['icoord'], dendro['dcoord'], dendro['color_list']):
+        x = 0.5 * sum(i[1:3])
+        y = d[1]
+        plt.plot(x, y, 'o', c=c)
+        plt.annotate(f'{y:.2f}', (x, y), xytext=(0, -5), textcoords='offset points',
+                     va='top', ha='center', fontsize=10, color=c)
+
+    img_io = io.BytesIO()
+    plt.savefig(img_io, format='png')
+    img_io.seek(0)
+    img_base64 = base64.b64encode(img_io.getvalue()).decode('utf8')
+    plt.close()
+
+    return jsonify({'dendrogram_image': img_base64})
+
+
+
+#---------------------------FILOGENIA--------------------------------#
 @app.route('/La_Filogenia')
 def la_filogenia():
     return render_template('Filogenia.html')
 
+
+#--------------------------------------------------------------------#
+
+
+
 @app.route('/La_Estructura_secundaria')
 def la_estructura_secundaria():
     return render_template('Estructura_secundaria.html')
+@app.route('/analyze_secondary_structure', methods=['POST'])
+def analyze_secondary_structure():
+    data = request.get_json()
+    sequence = data['sequence']
+
+    # Validar la secuencia aquí (si es necesario)
+    if not sequence or any(c not in "ACGT" for c in sequence):
+        return jsonify({'error': 'Secuencia no válida. Asegúrate de que solo contiene A, C, G, T.'})
+
+    alpha_dict = {"CG": -1, "GC": -1, "AU": -1, "UA": -1, "GU": -1, "UG": -1}
+
+    energy_matrix, min_energy_score = predict_secondary_structure(sequence, alpha_dict)
+    traceback_structure, paired_positions, structures = traceback(sequence, energy_matrix, alpha_dict)
+
+    # Crear imagen y guardarla en un buffer de bytes
+    img = BytesIO()
+    plot_structure(sequence, paired_positions, structures, img, node_color="#00BFFF", edge_color="#D3D3D3", highlight_color="#FF4500")
+    
+    # Codificar la imagen en base64
+    img.seek(0)
+    img_base64 = base64.b64encode(img.getvalue()).decode('utf-8')
+
+    return jsonify({'structureImage': img_base64})
 
 
 

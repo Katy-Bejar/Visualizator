@@ -1,5 +1,52 @@
-{% extends "layout.html" %} {% block content %}
+{% extends "layout.html" %}
 
+{% block title %}Estructura Secundaria{% endblock %}
 
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Estructura Secundaria</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+
+<h1>Estructura Secundaria</h1>
+
+<form id="secondaryStructureForm">
+    <label for="sequence">Secuencia:</label>
+    <input type="text" id="sequence" name="sequence" required>
+    <button type="submit">Calcular Estructura</button>
+</form>
+
+<div id="structureResult" style="margin-top: 20px;"></div>
+
+<script>
+    document.getElementById('secondaryStructureForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const sequence = document.getElementById('sequence').value;
+
+        fetch('/analyze_secondary_structure', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ sequence })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                document.getElementById('structureResult').innerHTML = `<p style="color: red;">${data.error}</p>`;
+            } else {
+                document.getElementById('structureResult').innerHTML = `<img src="data:image/png;base64,${data.structureImage}"/>`;
+            }
+        });
+    });
+</script>
+
+</body>
+</html>
 
 {% endblock %}
