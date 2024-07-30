@@ -6,9 +6,10 @@ import base64
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-from cluster_algorithms.cluster import single_linkage_clustering
-from cluster_algorithms.cluster import create_linkage_matrix
-from cluster_algorithms.cluster import plot_dendrogram
+from cluster_algorithms.cluster import min_linkage_clustering
+from cluster_algorithms.cluster import max_linkage_clustering
+from cluster_algorithms.cluster import promedio_linkage_clustering
+from cluster_algorithms.cluster import plot_dendrogram_to_base64, plot_dendrogram
 from estructura.estructura_secundaria import predict_secondary_structure, traceback, plot_structure
 import networkx as nx
 from io import BytesIO
@@ -35,37 +36,32 @@ def el_alineamiento_multiple():
 @app.route('/El_Cluster')
 def el_cluster():
     return render_template('Clusterizacion.html')
+
+
+
 @app.route('/analyze_clustering', methods=['POST'])
 def analyze_clustering():
-    data = request.get_json()
-    matrix = np.array(data.get('matrix'))
-    method = data.get('method')
+    data = request.json
+    matrix = np.array(data['matrix'])
+    method = data['method']
+    
+    # Seleccionar el método de clustering
+    if method == 'single':
+        steps = min_linkage_clustering(matrix)
+        title = 'Dendrograma - Enlace Simple'
+    elif method == 'complete':
+        steps = max_linkage_clustering(matrix)
+        title = 'Dendrograma - Enlace Completo'
+    elif method == 'average':
+        steps = promedio_linkage_clustering(matrix)
+        title = 'Dendrograma - Enlace Promedio'
+    else:
+        return jsonify({'error': 'Método no reconocido.'})
 
-    if matrix is None or method not in ['single', 'complete', 'average']:
-        return jsonify({'error': 'Datos inválidos.'})
+    # Generar la imagen del dendrograma
+    dendrogram_image = plot_dendrogram_to_base64(matrix, steps, title)
 
-    # Realizar el clustering con el método especificado
-    Z = linkage(matrix, method=method)
-
-    # Crear el dendrograma
-    plt.figure(figsize=(10, 7))
-    dendro = dendrogram(Z, labels=[chr(65 + i) for i in range(len(matrix))], leaf_rotation=90, leaf_font_size=12)
-
-    # Añadir etiquetas de distancia en el dendrograma
-    for i, d, c in zip(dendro['icoord'], dendro['dcoord'], dendro['color_list']):
-        x = 0.5 * sum(i[1:3])
-        y = d[1]
-        plt.plot(x, y, 'o', c=c)
-        plt.annotate(f'{y:.2f}', (x, y), xytext=(0, -5), textcoords='offset points',
-                     va='top', ha='center', fontsize=10, color=c)
-
-    img_io = io.BytesIO()
-    plt.savefig(img_io, format='png')
-    img_io.seek(0)
-    img_base64 = base64.b64encode(img_io.getvalue()).decode('utf8')
-    plt.close()
-
-    return jsonify({'dendrogram_image': img_base64})
+    return jsonify({'dendrogram_image': dendrogram_image})
 
 
 
