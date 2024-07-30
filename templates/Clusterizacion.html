@@ -21,6 +21,9 @@
     <button type="submit">Calcular Filogenia</button>
 </form>
 
+<h3>Matriz de Distancias:</h3>
+<div id="distanceMatrix" style="margin-top: 20px;"></div>
+
 <div id="result" style="margin-top: 20px;"></div>
 
 <script>
@@ -70,6 +73,9 @@ document.getElementById('phylogenyForm').addEventListener('submit', function(eve
         }
     }
 
+    // Mostrar la matriz de distancias
+    displayDistanceMatrix(matrix);
+
     fetch('/analyze_clustering', {
         method: 'POST',
         headers: {
@@ -87,5 +93,25 @@ document.getElementById('phylogenyForm').addEventListener('submit', function(eve
         }
     });
 });
+
+function displayDistanceMatrix(matrix) {
+    const distanceMatrixDiv = document.getElementById('distanceMatrix');
+    distanceMatrixDiv.innerHTML = '';
+
+    let table = document.createElement('table');
+    table.style.borderCollapse = 'collapse';
+    for (let i = 0; i < matrix.length; i++) {
+        let row = document.createElement('tr');
+        for (let j = 0; j < matrix[i].length; j++) {
+            let cell = document.createElement('td');
+            cell.style.border = '1px solid black';
+            cell.style.padding = '5px';
+            cell.textContent = matrix[i][j].toFixed(2);
+            row.appendChild(cell);
+        }
+        table.appendChild(row);
+    }
+    distanceMatrixDiv.appendChild(table);
+}
 </script>
 {% endblock %}
